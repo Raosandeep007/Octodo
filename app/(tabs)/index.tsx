@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   FlatList,
@@ -7,19 +7,19 @@ import {
   Pressable,
   Text,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useStore } from '../../src/store';
-import { useTheme } from '../../src/hooks';
-import { githubService } from '../../src/services';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useStore } from "../../src/store";
+import { useTheme } from "../../src/hooks";
+import { githubService } from "../../src/services";
 import {
   TodoItem,
   EmptyState,
   LoadingSpinner,
   AddTodoModal,
-} from '../../src/components';
-import { Todo, Priority } from '../../src/types';
+} from "../../src/components";
+import { Todo, Priority } from "../../src/types";
 
 export default function TodoListScreen() {
   const { colors } = useTheme();
@@ -36,7 +36,7 @@ export default function TodoListScreen() {
   } = useStore();
 
   const [showAddModal, setShowAddModal] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'open' | 'completed'>('open');
+  const [filter, setFilter] = useState<"all" | "open" | "completed">("open");
 
   const loadTodos = useCallback(async () => {
     if (!config.githubToken) {
@@ -48,7 +48,7 @@ export default function TodoListScreen() {
 
       if (selectedProject) {
         const projectTodos = await githubService.getProjectItems(
-          selectedProject.id
+          selectedProject.id,
         );
         setTodos(projectTodos);
       } else {
@@ -58,13 +58,13 @@ export default function TodoListScreen() {
           id: `issue-${issue.id}`,
           issue,
           priority: null,
-          completed: issue.state === 'closed',
+          completed: issue.state === "closed",
         }));
         setTodos(todosFromIssues);
       }
     } catch (error) {
-      console.error('Failed to load todos:', error);
-      Alert.alert('Error', 'Failed to load todos. Please check your settings.');
+      console.error("Failed to load todos:", error);
+      Alert.alert("Error", "Failed to load todos. Please check your settings.");
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +92,7 @@ export default function TodoListScreen() {
 
       if (todo.issue.repository) {
         try {
-          const [owner, repo] = todo.issue.repository.full_name.split('/');
+          const [owner, repo] = todo.issue.repository.full_name.split("/");
           if (newCompleted) {
             await githubService.closeIssue(owner, repo, todo.issue.number);
           } else {
@@ -101,11 +101,11 @@ export default function TodoListScreen() {
         } catch (error) {
           // Revert on error
           updateTodo(id, { completed: !newCompleted });
-          Alert.alert('Error', 'Failed to update issue status.');
+          Alert.alert("Error", "Failed to update issue status.");
         }
       }
     },
-    [todos, updateTodo]
+    [todos, updateTodo],
   );
 
   const handleAddTodo = useCallback(
@@ -117,8 +117,8 @@ export default function TodoListScreen() {
     }) => {
       if (!config.owner || !config.repo) {
         Alert.alert(
-          'Setup Required',
-          'Please configure your repository in settings.'
+          "Setup Required",
+          "Please configure your repository in settings.",
         );
         return;
       }
@@ -128,7 +128,7 @@ export default function TodoListScreen() {
           config.owner,
           config.repo,
           data.title,
-          data.body
+          data.body,
         );
 
         const newTodo: Todo = {
@@ -141,17 +141,17 @@ export default function TodoListScreen() {
 
         setTodos([newTodo, ...todos]);
       } catch (error) {
-        Alert.alert('Error', 'Failed to create todo.');
+        Alert.alert("Error", "Failed to create todo.");
       }
     },
-    [config.owner, config.repo, todos]
+    [config.owner, config.repo, todos],
   );
 
   const filteredTodos = todos.filter((todo) => {
     switch (filter) {
-      case 'open':
+      case "open":
         return !todo.completed;
-      case 'completed':
+      case "completed":
         return todo.completed;
       default:
         return true;
@@ -161,7 +161,7 @@ export default function TodoListScreen() {
   const renderHeader = () => (
     <View style={[styles.header, { borderBottomColor: colors.border }]}>
       <View style={styles.filterRow}>
-        {(['open', 'completed', 'all'] as const).map((f) => (
+        {(["open", "completed", "all"] as const).map((f) => (
           <Pressable
             key={f}
             style={[
@@ -198,7 +198,7 @@ export default function TodoListScreen() {
         />
         <Pressable
           style={[styles.settingsButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/settings')}
+          onPress={() => router.push("/settings")}
         >
           <Ionicons name="settings-outline" size={20} color="#FFFFFF" />
           <Text style={styles.settingsButtonText}>Go to Settings</Text>
@@ -235,7 +235,7 @@ export default function TodoListScreen() {
             icon="checkbox-outline"
             title="No Todos"
             message={
-              filter === 'completed'
+              filter === "completed"
                 ? "You haven't completed any todos yet."
                 : "You're all caught up! Tap + to add a new todo."
             }
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   filterRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   filterButton: {
@@ -288,30 +288,30 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emptyList: {
     flex: 1,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
     bottom: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
   },
   settingsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
@@ -320,8 +320,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   settingsButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

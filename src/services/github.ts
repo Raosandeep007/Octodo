@@ -1,43 +1,47 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 import {
   GitHubIssue,
   GitHubProject,
   GitHubRepository,
   Todo,
   Priority,
-} from '../types';
+} from "../types";
 
-const GITHUB_API_URL = 'https://api.github.com';
-const GITHUB_GRAPHQL_URL = 'https://api.github.com/graphql';
+const GITHUB_API_URL = "https://api.github.com";
+const GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
 
 class GitHubService {
   private restClient: AxiosInstance;
-  private token: string = '';
+  private token: string = "";
 
   constructor() {
     this.restClient = axios.create({
       baseURL: GITHUB_API_URL,
       headers: {
-        Accept: 'application/vnd.github.v3+json',
+        Accept: "application/vnd.github.v3+json",
       },
     });
   }
 
   setToken(token: string) {
     this.token = token;
-    this.restClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    this.restClient.defaults.headers.common["Authorization"] =
+      `Bearer ${token}`;
   }
 
-  private async graphql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
+  private async graphql<T>(
+    query: string,
+    variables?: Record<string, unknown>,
+  ): Promise<T> {
     const response = await axios.post(
       GITHUB_GRAPHQL_URL,
       { query, variables },
       {
         headers: {
           Authorization: `Bearer ${this.token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (response.data.errors) {
@@ -49,15 +53,15 @@ class GitHubService {
 
   // Get authenticated user
   async getCurrentUser() {
-    const response = await this.restClient.get('/user');
+    const response = await this.restClient.get("/user");
     return response.data;
   }
 
   // Get user's repositories
   async getRepositories(): Promise<GitHubRepository[]> {
-    const response = await this.restClient.get('/user/repos', {
+    const response = await this.restClient.get("/user/repos", {
       params: {
-        sort: 'updated',
+        sort: "updated",
         per_page: 100,
       },
     });
@@ -66,11 +70,11 @@ class GitHubService {
 
   // Get issues assigned to user
   async getAssignedIssues(): Promise<GitHubIssue[]> {
-    const response = await this.restClient.get('/issues', {
+    const response = await this.restClient.get("/issues", {
       params: {
-        filter: 'assigned',
-        state: 'open',
-        sort: 'updated',
+        filter: "assigned",
+        state: "open",
+        sort: "updated",
         per_page: 100,
       },
     });
@@ -79,13 +83,16 @@ class GitHubService {
 
   // Get issues from a specific repository
   async getRepoIssues(owner: string, repo: string): Promise<GitHubIssue[]> {
-    const response = await this.restClient.get(`/repos/${owner}/${repo}/issues`, {
-      params: {
-        state: 'all',
-        sort: 'updated',
-        per_page: 100,
+    const response = await this.restClient.get(
+      `/repos/${owner}/${repo}/issues`,
+      {
+        params: {
+          state: "all",
+          sort: "updated",
+          per_page: 100,
+        },
       },
-    });
+    );
     return response.data;
   }
 
@@ -95,13 +102,16 @@ class GitHubService {
     repo: string,
     title: string,
     body?: string,
-    labels?: string[]
+    labels?: string[],
   ): Promise<GitHubIssue> {
-    const response = await this.restClient.post(`/repos/${owner}/${repo}/issues`, {
-      title,
-      body,
-      labels,
-    });
+    const response = await this.restClient.post(
+      `/repos/${owner}/${repo}/issues`,
+      {
+        title,
+        body,
+        labels,
+      },
+    );
     return response.data;
   }
 
@@ -110,23 +120,36 @@ class GitHubService {
     owner: string,
     repo: string,
     issueNumber: number,
-    updates: { title?: string; body?: string; state?: 'open' | 'closed'; labels?: string[] }
+    updates: {
+      title?: string;
+      body?: string;
+      state?: "open" | "closed";
+      labels?: string[];
+    },
   ): Promise<GitHubIssue> {
     const response = await this.restClient.patch(
       `/repos/${owner}/${repo}/issues/${issueNumber}`,
-      updates
+      updates,
     );
     return response.data;
   }
 
   // Close an issue
-  async closeIssue(owner: string, repo: string, issueNumber: number): Promise<GitHubIssue> {
-    return this.updateIssue(owner, repo, issueNumber, { state: 'closed' });
+  async closeIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+  ): Promise<GitHubIssue> {
+    return this.updateIssue(owner, repo, issueNumber, { state: "closed" });
   }
 
   // Reopen an issue
-  async reopenIssue(owner: string, repo: string, issueNumber: number): Promise<GitHubIssue> {
-    return this.updateIssue(owner, repo, issueNumber, { state: 'open' });
+  async reopenIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+  ): Promise<GitHubIssue> {
+    return this.updateIssue(owner, repo, issueNumber, { state: "open" });
   }
 
   // Get user's projects using GraphQL
@@ -268,10 +291,18 @@ class GitHubService {
               updatedAt: string;
               closedAt?: string;
               url: string;
-              labels: { nodes: Array<{ id: string; name: string; color: string }> };
-              assignees: { nodes: Array<{ id: string; login: string; avatarUrl: string }> };
+              labels: {
+                nodes: Array<{ id: string; name: string; color: string }>;
+              };
+              assignees: {
+                nodes: Array<{ id: string; login: string; avatarUrl: string }>;
+              };
               author: { login: string; avatarUrl: string };
-              repository: { name: string; nameWithOwner: string; owner: { login: string } };
+              repository: {
+                name: string;
+                nameWithOwner: string;
+                owner: { login: string };
+              };
             };
           }>;
         };
@@ -292,34 +323,34 @@ class GitHubService {
         // Extract custom fields
         item.fieldValues.nodes.forEach((field) => {
           const fieldName = field.field?.name?.toLowerCase();
-          if (fieldName === 'priority' && field.name) {
+          if (fieldName === "priority" && field.name) {
             const priorityValue = field.name.toLowerCase();
-            if (priorityValue.includes('high')) priority = 'high';
-            else if (priorityValue.includes('medium')) priority = 'medium';
-            else if (priorityValue.includes('low')) priority = 'low';
+            if (priorityValue.includes("high")) priority = "high";
+            else if (priorityValue.includes("medium")) priority = "medium";
+            else if (priorityValue.includes("low")) priority = "low";
           }
-          if ((fieldName === 'due date' || fieldName === 'due') && field.date) {
+          if ((fieldName === "due date" || fieldName === "due") && field.date) {
             dueDate = field.date;
           }
         });
 
         const issue: GitHubIssue = {
-          id: parseInt(content.id.replace(/\D/g, '')) || Date.now(),
+          id: parseInt(content.id.replace(/\D/g, "")) || Date.now(),
           number: content.number,
           title: content.title,
           body: content.body,
-          state: content.state.toLowerCase() as 'open' | 'closed',
+          state: content.state.toLowerCase() as "open" | "closed",
           created_at: content.createdAt,
           updated_at: content.updatedAt,
           closed_at: content.closedAt,
           html_url: content.url,
           labels: content.labels.nodes.map((l) => ({
-            id: parseInt(l.id.replace(/\D/g, '')) || Date.now(),
+            id: parseInt(l.id.replace(/\D/g, "")) || Date.now(),
             name: l.name,
             color: l.color,
           })),
           assignees: content.assignees.nodes.map((a) => ({
-            id: parseInt(a.id.replace(/\D/g, '')) || Date.now(),
+            id: parseInt(a.id.replace(/\D/g, "")) || Date.now(),
             login: a.login,
             avatar_url: a.avatarUrl,
           })),
@@ -335,7 +366,7 @@ class GitHubService {
             owner: {
               id: Date.now(),
               login: content.repository.owner.login,
-              avatar_url: '',
+              avatar_url: "",
             },
             private: false,
             html_url: `https://github.com/${content.repository.nameWithOwner}`,
@@ -347,10 +378,48 @@ class GitHubService {
           issue,
           priority,
           dueDate,
-          completed: content.state.toLowerCase() === 'closed',
+          completed: content.state.toLowerCase() === "closed",
           projectId,
         };
       });
+  }
+
+  // Get a specific user project by number
+  async getUserProjectByNumber(
+    username: string,
+    projectNumber: number,
+  ): Promise<GitHubProject | null> {
+    const query = `
+      query($username: String!, $number: Int!) {
+        user(login: $username) {
+          projectV2(number: $number) {
+            id
+            title
+            number
+            url
+            shortDescription
+            closed
+          }
+        }
+      }
+    `;
+
+    try {
+      const data = await this.graphql<{
+        user: { projectV2: GitHubProject | null };
+      }>(query, { username, number: projectNumber });
+
+      if (data.user?.projectV2) {
+        return {
+          ...data.user.projectV2,
+          owner: { login: username },
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Failed to fetch project:", error);
+      return null;
+    }
   }
 
   // Add issue to project
