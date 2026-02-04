@@ -8,5 +8,9 @@ jobs:
   publish_preview_update:
     name: Publish preview update
     type: update
+    env:
+      EXPO_PUBLIC_GITHUB_TOKEN: ${{ env.EXPO_PUBLIC_GITHUB_TOKEN }}
+      EXPO_PUBLIC_GITHUB_OWNER: ${{ env.EXPO_PUBLIC_GITHUB_OWNER }}
+      EXPO_PUBLIC_GITHUB_REPO: ${{ env.EXPO_PUBLIC_GITHUB_REPO }}
     params:
-      branch: ${{ github.ref_name }}
+      branch: ${{ github.ref_name || "main"}}

@@ -1,20 +1,55 @@
-import React, { useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Animated,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import {
-  Swipeable,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
-import { Todo } from '../types';
-import { useTheme } from '../hooks';
-import { PriorityBadge } from './PriorityBadge';
-import { DueDateBadge } from './DueDateBadge';
+import React, { useCallback } from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Todo } from "../types";
+import { useTheme } from "../hooks";
+import { PriorityBadge } from "./PriorityBadge";
+import { DueDateBadge } from "./DueDateBadge";
+import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Reanimated, {
+  SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+
+interface RightActionProps {
+  drag: SharedValue<number>;
+  completed: boolean;
+  successColor: string;
+  warningColor: string;
+}
+
+function RightAction({
+  drag,
+  completed,
+  successColor,
+  warningColor,
+}: RightActionProps) {
+  const styleAnimation = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: drag.value + 100 }],
+    };
+  });
+
+  return (
+    <Reanimated.View
+      style={[
+        styles.rightAction,
+        styleAnimation,
+        {
+          backgroundColor: completed ? warningColor : successColor,
+        },
+      ]}
+    >
+      <Ionicons
+        name={completed ? "arrow-undo" : "checkmark-circle"}
+        size={24}
+        color="#FFFFFF"
+      />
+      <Text style={styles.actionText}>{completed ? "Reopen" : "Complete"}</Text>
+    </Reanimated.View>
+  );
+}
 
 interface TodoItemProps {
   todo: Todo;
@@ -25,50 +60,30 @@ interface TodoItemProps {
 export function TodoItem({ todo, onToggleComplete, onPress }: TodoItemProps) {
   const { colors, isDark } = useTheme();
 
-  const renderRightActions = (
-    progress: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>
-  ) => {
-    const trans = dragX.interpolate({
-      inputRange: [-100, 0],
-      outputRange: [0, 100],
-      extrapolate: 'clamp',
-    });
-
-    return (
-      <Animated.View
-        style={[
-          styles.rightAction,
-          {
-            backgroundColor: todo.completed ? colors.warning : colors.success,
-            transform: [{ translateX: trans }],
-          },
-        ]}
-      >
-        <Ionicons
-          name={todo.completed ? 'arrow-undo' : 'checkmark-circle'}
-          size={24}
-          color="#FFFFFF"
-        />
-        <Text style={styles.actionText}>
-          {todo.completed ? 'Reopen' : 'Complete'}
-        </Text>
-      </Animated.View>
-    );
-  };
+  const renderRightActions = useCallback(
+    (_prog: SharedValue<number>, drag: SharedValue<number>) => (
+      <RightAction
+        drag={drag}
+        completed={todo.completed}
+        successColor={colors.success}
+        warningColor={colors.warning}
+      />
+    ),
+    [todo.completed, colors.success, colors.warning],
+  );
 
   const handleSwipeOpen = useCallback(
-    (direction: 'left' | 'right') => {
-      if (direction === 'right') {
+    (direction: "left" | "right") => {
+      if (direction === "right") {
         onToggleComplete(todo.id);
       }
     },
-    [todo.id, onToggleComplete]
+    [todo.id, onToggleComplete],
   );
 
   const repoName = todo.issue.repository
     ? todo.issue.repository.full_name
-    : 'Unknown repo';
+    : "Unknown repo";
 
   return (
     <GestureHandlerRootView>
@@ -99,7 +114,7 @@ export function TodoItem({ todo, onToggleComplete, onPress }: TodoItemProps) {
                   borderColor: todo.completed ? colors.success : colors.border,
                   backgroundColor: todo.completed
                     ? colors.success
-                    : 'transparent',
+                    : "transparent",
                 },
               ]}
             >
@@ -116,7 +131,9 @@ export function TodoItem({ todo, onToggleComplete, onPress }: TodoItemProps) {
                   styles.title,
                   {
                     color: colors.text,
-                    textDecorationLine: todo.completed ? 'line-through' : 'none',
+                    textDecorationLine: todo.completed
+                      ? "line-through"
+                      : "none",
                     opacity: todo.completed ? 0.6 : 1,
                   },
                 ]}
@@ -177,8 +194,8 @@ export function TodoItem({ todo, onToggleComplete, onPress }: TodoItemProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -191,39 +208,39 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
     flex: 1,
   },
   titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 4,
   },
   title: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     flex: 1,
   },
   metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
   },
   repo: {
     fontSize: 12,
   },
   badgesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
     gap: 6,
   },
   label: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -236,21 +253,21 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 10,
-    fontWeight: '500',
+    fontWeight: "500",
     maxWidth: 80,
   },
   chevron: {
     marginLeft: 8,
   },
   rightAction: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     width: 100,
   },
   actionText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 4,
   },
 });
